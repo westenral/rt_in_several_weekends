@@ -65,7 +65,7 @@ impl_vec3_binop!(Div, div, f64);
 impl_vec3_binop!(DivAssign, div_assign, f64, assign);
 impl_vec3_binop!(DivAssign, div_assign, Vec3, assign);
 
-type Pos = Vec3;
+pub type Pos = Vec3;
 
 impl Pos {
     #[inline(always)]
