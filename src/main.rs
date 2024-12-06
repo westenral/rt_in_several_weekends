@@ -4,6 +4,7 @@ mod vec3;
 use vec3::*;
 
 fn main() {
+    // image output
     let width = 255;
     let height = 255;
     println!("P3\n{width} {height}\n255");
