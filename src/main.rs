@@ -12,12 +12,7 @@ fn main() {
     for y in 0..height {
         eprint!("\rLines remaining: {:>6}", height - y);
         for x in 0..width {
-            println!(
-                "{} {} {}",
-                0x00,
-                (((y as f64 / height as f64) * 255.0) as usize),
-                (((x as f64 / width as f64) * 255.0) as usize)
-            )
+            Vec3(0., y as f64 / height as f64, x as f64 / width as f64).write_color();
         }
     }
     eprintln!();

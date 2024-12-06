@@ -5,6 +5,8 @@ mod macros;
 pub struct Vec3(pub f64, pub f64, pub f64);
 
 impl Vec3 {
+    // vector math
+
     #[inline(always)]
     pub fn dot(&self, rhs: &Vec3) -> f64 {
         self.0 * rhs.0 + self.1 * rhs.1 + self.2 * rhs.2
@@ -66,15 +68,18 @@ impl_vec3_binop!(DivAssign, div_assign, Vec3, assign);
 type Pos = Vec3;
 
 impl Pos {
-    fn x(&self) -> f64 {
+    #[inline(always)]
+    pub fn x(&self) -> f64 {
         self.0
     }
 
-    fn y(&self) -> f64 {
+    #[inline(always)]
+    pub fn y(&self) -> f64 {
         self.1
     }
 
-    fn z(&self) -> f64 {
+    #[inline(always)]
+    pub fn z(&self) -> f64 {
         self.2
     }
 }
