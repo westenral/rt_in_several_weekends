@@ -6,8 +6,8 @@ use vec3::*;
 
 fn main() {
     // image output
-    let width = 255;
-    let height = 255;
+    let width = 256;
+    let height = 256;
     println!("P3\n{width} {height}\n255");
 
     for y in 0..height {
