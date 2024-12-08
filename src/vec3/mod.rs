@@ -1,28 +1,30 @@
 #[macro_use]
 mod macros;
 
+pub use Vec3 as Pos;
+
 #[derive(Clone, Copy, Debug)]
 pub struct Vec3(pub f64, pub f64, pub f64);
 
 impl Vec3 {
     // vector math
 
-    #[inline(always)]
+    // #[inline(always)]
     pub fn dot(&self, rhs: &Vec3) -> f64 {
         self.0 * rhs.0 + self.1 * rhs.1 + self.2 * rhs.2
     }
 
-    #[inline(always)]
+    // #[inline(always)]
     pub fn length_squared(&self) -> f64 {
         self.dot(self)
     }
 
-    #[inline(always)]
+    // #[inline(always)]
     pub fn length(&self) -> f64 {
         self.length_squared().sqrt()
     }
 
-    #[inline(always)]
+    // #[inline(always)]
     pub fn cross(&self, rhs: &Vec3) -> Vec3 {
         Vec3(
             self.1 * rhs.2 - self.2 * rhs.1,
@@ -31,7 +33,7 @@ impl Vec3 {
         )
     }
 
-    #[inline(always)]
+    // #[inline(always)]
     pub fn normalized(&self) -> Vec3 {
         self / self.length()
     }
@@ -64,8 +66,6 @@ impl_vec3_binop!(Div, div, Vec3);
 impl_vec3_binop!(Div, div, f64);
 impl_vec3_binop!(DivAssign, div_assign, f64, assign);
 impl_vec3_binop!(DivAssign, div_assign, Vec3, assign);
-
-pub type Pos = Vec3;
 
 impl Pos {
     #[inline(always)]

@@ -1,6 +1,4 @@
-use crate::vec3::*;
-
-pub type Color = Vec3;
+pub use crate::vec3::Vec3 as Color;
 
 impl Color {
     pub fn write_color(&self) {
