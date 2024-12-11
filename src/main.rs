@@ -59,23 +59,35 @@ fn main() {
 }
 
 fn ray_color(ray: &Ray) -> Color {
-    if hit_sphere(ray, Pos(0., 0., -1.), 0.5) {
-        return Color(1., 0., 0.);
+    let sphere_center = Pos(0., 0., -1.);
+    let sphere_radius = 0.5;
+    if let Some(t) = hit_sphere(ray, sphere_center, sphere_radius) {
+        let hit_pos = ray.at(t);
+        let normal_dir = hit_pos - sphere_center;
+        let normal_unit = normal_dir.unit_vec();
+
+        return (normal_unit + 1.0) / 2.0;
     }
 
-    let unit_ray = ray.dir.normalized();
+    let unit_ray = ray.dir.unit_vec();
     let scaled_y = (unit_ray.y() + 1.0) * 0.5;
     let c1 = Color(1., 1., 1.);
     let c2 = Color(0.5, 0.7, 1.0);
     c1 * (1.0 - scaled_y) + c2 * scaled_y
 }
 
-fn hit_sphere(ray: &Ray, center: Pos, radius: f64) -> bool {
+// returns Some(t) where t is point along ray intersecting with sphere
+fn hit_sphere(ray: &Ray, center: Pos, radius: f64) -> Option<f64> {
+    // quadratic formula
     let oc = center - ray.origin;
     let a = ray.dir.dot(&ray.dir);
     let b = -2. * ray.dir.dot(&oc);
     let c = oc.dot(&oc) - radius * radius;
 
     let discriminant = b * b - 4.0 * a * c;
-    discriminant >= 0.
+
+    match discriminant < 0. {
+        true => None,
+        false => Some((-b - discriminant.sqrt()) / (2.0 * a)),
+    }
 }
