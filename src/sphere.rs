@@ -1,0 +1,55 @@
+use crate::{hit::*, ray::*, vec3::*};
+
+pub struct Sphere {
+    pub center: Pos,
+    // radius should be positive
+    pub radius: f64,
+}
+
+impl Hit for Sphere {
+    fn hit(&self, ray: &Ray, ray_t_interval: std::ops::Range<f64>) -> Option<HitInfo> {
+        // quadratic formula
+        // simplified when b = -2h
+
+        let oc = self.center - ray.origin;
+
+        let a = ray.dir.length_squared();
+        let h = ray.dir.dot(&oc);
+        let c = oc.length_squared() - self.radius.powi(2);
+
+        let discriminant = h * h - a * c;
+
+        if discriminant < 0. {
+            return None;
+        }
+
+        // calculate nearest intersection
+        let sqrt_d = discriminant.sqrt();
+        let mut t = (h - sqrt_d) / a;
+        if !ray_t_interval.contains(&t) {
+            t = (h + sqrt_d) / a;
+            if !ray_t_interval.contains(&t) {
+                return None;
+            }
+        }
+
+        let pos = ray.at(t);
+        let normal = (pos - self.center) / self.radius;
+        Some(HitInfo { pos, normal, t })
+    }
+}
+
+#[test]
+fn sphere_hit_test() {
+    let ray = Ray {
+        origin: Pos(0., 0., 0.),
+        dir: Vec3(0., 0., -1.),
+    };
+    let sphere = Sphere {
+        center: Pos(0., 0., -1.),
+        radius: 0.5,
+    };
+
+    let hit_info = sphere.hit(&ray, 0.0..f64::INFINITY).unwrap();
+    assert!(hit_info.t == 0.5);
+}
