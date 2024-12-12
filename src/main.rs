@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 mod color;
 mod hit;
 mod ray;
