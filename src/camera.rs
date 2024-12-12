@@ -1,4 +1,4 @@
-use crate::{color::*, hit::*, ray::*, shapes::*, vec3::*};
+use crate::{color::*, hit::*, ray::*, vec3::*};
 
 pub struct Camera {
     // pub aspect_ratio: f64,
