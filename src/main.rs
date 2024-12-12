@@ -16,6 +16,21 @@ fn main() {
         }));
 
         world.push(Box::new(shapes::Sphere {
+            center: vec3::Pos(-2., -0.0, -2.),
+            radius: 0.2,
+        }));
+
+        world.push(Box::new(shapes::Sphere {
+            center: vec3::Pos(1., 1., -1.),
+            radius: 0.3,
+        }));
+
+        world.push(Box::new(shapes::Sphere {
+            center: vec3::Pos(1., 2., -5.),
+            radius: 3.,
+        }));
+
+        world.push(Box::new(shapes::Sphere {
             center: vec3::Pos(0., -100.5, -1.),
             radius: 100.,
         }));
@@ -23,6 +38,10 @@ fn main() {
         world
     };
 
-    let cam = camera::Camera::new(16.0 / 9.0, 400);
+    let cam = camera::CameraBuilder::default()
+        .with_image_width(400)
+        .with_aspect_ratio(16.0 / 9.0)
+        .with_samples_per_pixel(100)
+        .build();
     cam.render(&world);
 }
