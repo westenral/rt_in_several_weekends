@@ -43,5 +43,6 @@ fn main() {
         .with_aspect_ratio(16.0 / 9.0)
         .with_samples_per_pixel(100)
         .build();
+
     cam.render(&world);
 }
