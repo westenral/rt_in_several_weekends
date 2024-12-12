@@ -1,4 +1,5 @@
 use crate::{hit::*, ray::*, vec3::*};
+use std::ops::Range;
 
 pub struct Sphere {
     pub center: Pos,
@@ -7,7 +8,7 @@ pub struct Sphere {
 }
 
 impl Hit for Sphere {
-    fn hit(&self, ray: &Ray, ray_t_interval: std::ops::Range<f64>) -> Option<HitInfo> {
+    fn hit(&self, ray: &Ray, ray_t_interval: Range<f64>) -> Option<HitInfo> {
         // quadratic formula
         // simplified when b = -2h
 
