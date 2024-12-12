@@ -37,6 +37,37 @@ impl Vec3 {
     pub fn unit_vec(&self) -> Vec3 {
         self / self.length()
     }
+
+    pub fn rand(min: f64, max: f64) -> Self {
+        Self(randf64(min, max), randf64(min, max), randf64(min, max))
+    }
+
+    pub fn random_on_hemisphere(norm: &Vec3) -> Vec3 {
+        let dir = Vec3::rand_in_unit_sphere();
+        if dir.dot(norm) > 0. {
+            dir
+        } else {
+            -dir
+        }
+    }
+
+    pub fn rand_in_unit_sphere() -> Vec3 {
+        // generate random in unit cube, rejection method to get it in sphere
+        loop {
+            let vec = Vec3::rand(-1., 1.);
+            let len_sqrd = vec.length_squared();
+            if 1e-160 < len_sqrd && len_sqrd <= 1. {
+                break vec / len_sqrd.sqrt();
+            }
+        }
+    }
+}
+
+fn randf64(min: f64, max: f64) -> f64 {
+    let scale = max - min;
+    let bruh = fastrand::f64();
+    // FMA??? join the cargo cult
+    bruh * scale + min
 }
 
 impl std::ops::Neg for Vec3 {
