@@ -7,7 +7,9 @@ mod sphere;
 mod vec3;
 
 use color::*;
+use hit::*;
 use ray::*;
+use sphere::Sphere;
 use vec3::*;
 
 fn main() {
@@ -16,6 +18,20 @@ fn main() {
     let image_width: usize = 400;
     // minimum height of 1
     let image_height = ((image_width as f64 / aspect_ratio) as usize).max(1);
+
+    // world setup
+    let world = {
+        let mut world = HitList::default();
+        world.push(Box::new(Sphere {
+            center: Pos(0., 0., -1.),
+            radius: 0.5,
+        }));
+        world.push(Box::new(Sphere {
+            center: Pos(0., -100.5, -1.),
+            radius: 100.,
+        }));
+        world
+    };
 
     // camera info
     let camera_position = Pos(0., 0., 0.);
@@ -48,7 +64,7 @@ fn main() {
                 origin: camera_position,
                 dir: ray_dir,
             };
-            let ray_color = ray_color(&ray);
+            let ray_color = ray_color(&ray, &world);
 
             ray_color.write_color();
         }
@@ -56,15 +72,8 @@ fn main() {
     eprintln!();
 }
 
-fn ray_color(ray: &Ray) -> Color {
-    let sphere_center = Pos(0., 0., -1.);
-    let sphere_radius = 0.5;
-    use hit::Hit;
-    let s = sphere::Sphere {
-        center: sphere_center,
-        radius: sphere_radius,
-    };
-    if let Some(hit_info) = s.hit(ray, 0.0..f64::INFINITY) {
+fn ray_color(ray: &Ray, world: &impl Hit) -> Color {
+    if let Some(hit_info) = world.hit(ray, 0.0..f64::INFINITY) {
         return (hit_info.normal + 1.0) / 2.0;
     }
 

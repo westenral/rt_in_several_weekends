@@ -34,8 +34,15 @@ impl Hit for Sphere {
         }
 
         let pos = ray.at(t);
-        let normal = (pos - self.center) / self.radius;
-        Some(HitInfo { pos, normal, t })
+        let out_normal = (pos - self.center) / self.radius;
+        let front_face = out_normal.dot(&ray.dir) < 0.;
+        let normal = if front_face { out_normal } else { -out_normal };
+        Some(HitInfo {
+            pos,
+            normal,
+            t,
+            front_face,
+        })
     }
 }
 
