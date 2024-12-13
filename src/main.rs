@@ -39,9 +39,9 @@ fn main() {
     };
 
     let cam = camera::CameraBuilder::default()
-        .with_image_width(400)
+        .with_image_width(1920 / 4)
         .with_aspect_ratio(16.0 / 9.0)
-        .with_samples_per_pixel(50)
+        .with_samples_per_pixel(100)
         .with_max_bounces(50)
         .build();
 

@@ -43,7 +43,7 @@ impl Vec3 {
     }
 
     pub fn random_on_hemisphere(norm: &Vec3) -> Vec3 {
-        let dir = Vec3::rand_in_unit_sphere();
+        let dir = Vec3::rand_unit_vec();
         if dir.dot(norm) > 0. {
             dir
         } else {
@@ -51,7 +51,7 @@ impl Vec3 {
         }
     }
 
-    pub fn rand_in_unit_sphere() -> Vec3 {
+    pub fn rand_unit_vec() -> Vec3 {
         // generate random in unit cube, rejection method to get it in sphere
         loop {
             let vec = Vec3::rand(-1., 1.);

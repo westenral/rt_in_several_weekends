@@ -106,12 +106,15 @@ impl Camera {
 
         // object intersection
         if let Some(hit_info) = world.hit(ray, 0.001..f64::INFINITY) {
-            let next_dir = Vec3::random_on_hemisphere(&hit_info.normal);
+            // uniform distribution
+            // let next_dir = Vec3::random_on_hemisphere(&hit_info.normal);
+            // lambertian distribution
+            let next_dir = Vec3::rand_unit_vec() + hit_info.normal;
             let next_ray = Ray {
                 origin: hit_info.pos,
                 dir: next_dir,
             };
-            return 0.5 * self.ray_color(&next_ray, world, bounces + 1);
+            return 0.9 * self.ray_color(&next_ray, world, bounces + 1);
         }
 
         // background color
