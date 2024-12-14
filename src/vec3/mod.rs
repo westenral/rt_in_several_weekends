@@ -61,6 +61,17 @@ impl Vec3 {
             }
         }
     }
+
+    /// Checks whether the vector is near zero
+    pub fn near_zero(&self) -> bool {
+        let margin = 1e-8;
+        self.0.abs() < margin && self.1.abs() < margin && self.2.abs() < margin
+    }
+
+    /// Reflect a vector around a unit-length direction
+    pub fn reflect(&self, norm: &Vec3) -> Vec3 {
+        self - 2. * self.dot(norm) * norm
+    }
 }
 
 fn randf64(min: f64, max: f64) -> f64 {

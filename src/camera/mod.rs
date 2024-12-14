@@ -109,12 +109,17 @@ impl Camera {
             // uniform distribution
             // let next_dir = Vec3::random_on_hemisphere(&hit_info.normal);
             // lambertian distribution
-            let next_dir = Vec3::rand_unit_vec() + hit_info.normal;
-            let next_ray = Ray {
-                origin: hit_info.pos,
-                dir: next_dir,
-            };
-            return 0.9 * self.ray_color(&next_ray, world, bounces + 1);
+            // let next_dir = Vec3::rand_unit_vec() + hit_info.normal;
+            // let next_ray = Ray {
+            //     origin: hit_info.pos,
+            //     dir: next_dir,
+            // };
+            // return 0.5 * self.ray_color(&next_ray, world, bounces + 1);
+
+            if let Some((ray, attenuation)) = hit_info.mat.scatter(ray, &hit_info) {
+                return attenuation * self.ray_color(&ray, world, bounces + 1);
+            }
+            return Color(0., 0., 0.);
         }
 
         // background color
@@ -123,6 +128,8 @@ impl Camera {
         let c1 = Color(1., 1., 1.);
         let c2 = Color(0.5, 0.7, 1.0);
         c1 * (1.0 - scaled_y) + c2 * scaled_y
+
+        // Color(1., 1., 1.)
     }
 
     fn get_ray(&self, i: u64, j: u64) -> Ray {

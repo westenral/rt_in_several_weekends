@@ -1,39 +1,59 @@
 mod camera;
 mod color;
 mod hit;
+mod materials;
 mod ray;
 mod shapes;
 mod vec3;
 
 fn main() {
+    // materials
+    let mat_ground = materials::Lambertian {
+        albedo: color::Color(0.8, 0.8, 0.),
+    };
+    let mat_center = materials::Lambertian {
+        albedo: color::Color(0.1, 0.2, 0.5),
+    };
+    let mat_left = materials::Metal {
+        albedo: color::Color(0.8, 0.8, 0.8),
+        fuzz: 0.3,
+    };
+    let mat_right = materials::Metal {
+        albedo: color::Color(0.8, 0.6, 0.2),
+        fuzz: 1.0,
+    };
+
     // world setup
     let world = {
         let mut world = hit::HitList::default();
 
-        world.push(Box::new(shapes::Sphere {
-            center: vec3::Pos(0., 0., -1.),
-            radius: 0.5,
-        }));
-
-        // world.push(Box::new(shapes::Sphere {
-        //     center: vec3::Pos(-2., -0.0, -2.),
-        //     radius: 0.2,
-        // }));
-
-        // world.push(Box::new(shapes::Sphere {
-        //     center: vec3::Pos(1., 1., -1.),
-        //     radius: 0.3,
-        // }));
-
-        // world.push(Box::new(shapes::Sphere {
-        //     center: vec3::Pos(1., 2., -5.),
-        //     radius: 3.,
-        // }));
-
-        world.push(Box::new(shapes::Sphere {
+        // ground
+        world.push(shapes::Sphere {
             center: vec3::Pos(0., -100.5, -1.),
             radius: 100.,
-        }));
+            mat: &mat_ground,
+        });
+
+        // center
+        world.push(shapes::Sphere {
+            center: vec3::Pos(0., 0., -1.2),
+            radius: 0.5,
+            mat: &mat_center,
+        });
+
+        // left
+        world.push(shapes::Sphere {
+            center: vec3::Pos(-1., 0., -1.),
+            radius: 0.5,
+            mat: &mat_left,
+        });
+
+        // right
+        world.push(shapes::Sphere {
+            center: vec3::Pos(1., 0., -1.),
+            radius: 0.5,
+            mat: &mat_right,
+        });
 
         world
     };
