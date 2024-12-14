@@ -72,6 +72,13 @@ impl Vec3 {
     pub fn reflect(&self, norm: &Vec3) -> Vec3 {
         self - 2. * self.dot(norm) * norm
     }
+
+    pub fn refract(&self, norm: &Vec3, rel_refract_index: f64) -> Vec3 {
+        let cos_theta = (-self).dot(norm).min(1.);
+        let r_prime_perp = rel_refract_index * (self + cos_theta * norm);
+        let r_prime_parallel = -((1.0 - r_prime_perp.length_squared()).abs().sqrt()) * norm;
+        r_prime_perp + r_prime_parallel
+    }
 }
 
 fn randf64(min: f64, max: f64) -> f64 {
@@ -86,6 +93,14 @@ impl std::ops::Neg for Vec3 {
 
     fn neg(self) -> Self::Output {
         Self(-self.0, -self.1, -self.2)
+    }
+}
+
+impl std::ops::Neg for &Vec3 {
+    type Output = Vec3;
+
+    fn neg(self) -> Self::Output {
+        Vec3(-self.0, -self.1, -self.2)
     }
 }
 

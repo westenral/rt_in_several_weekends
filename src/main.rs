@@ -14,9 +14,8 @@ fn main() {
     let mat_center = materials::Lambertian {
         albedo: color::Color(0.1, 0.2, 0.5),
     };
-    let mat_left = materials::Metal {
-        albedo: color::Color(0.8, 0.8, 0.8),
-        fuzz: 0.3,
+    let mat_left = materials::Dialectric {
+        refraction_index: 1.5,
     };
     let mat_right = materials::Metal {
         albedo: color::Color(0.8, 0.6, 0.2),
