@@ -7,6 +7,7 @@ pub struct CameraBuilder {
     image_width: Option<u64>,
     samples_per_pixel: Option<u64>,
     max_bounces: Option<u64>,
+    vfov: Option<f64>,
 }
 
 impl CameraBuilder {
@@ -38,12 +39,20 @@ impl CameraBuilder {
         }
     }
 
+    pub fn with_vfov_degrees(self, vfov: f64) -> Self {
+        CameraBuilder {
+            vfov: Some(vfov.to_radians()),
+            ..self
+        }
+    }
+
     pub fn build(self) -> Camera {
         Camera::new(
             self.aspect_ratio.unwrap_or(1.),
             self.image_width.unwrap_or(100),
             self.samples_per_pixel.unwrap_or(10),
             self.max_bounces.unwrap_or(10),
+            self.vfov.unwrap_or(std::f64::consts::PI / 2.),
         )
     }
 }
