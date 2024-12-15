@@ -15,7 +15,10 @@ fn main() {
         albedo: color::Color(0.1, 0.2, 0.5),
     };
     let mat_left = materials::Dialectric {
-        refraction_index: 1.5,
+        refraction_index: 1.50,
+    };
+    let mat_bubble = materials::Dialectric {
+        refraction_index: 1.00 / 1.50,
     };
     let mat_right = materials::Metal {
         albedo: color::Color(0.8, 0.6, 0.2),
@@ -45,6 +48,13 @@ fn main() {
             center: vec3::Pos(-1., 0., -1.),
             radius: 0.5,
             mat: &mat_left,
+        });
+
+        // bubble in left
+        world.push(shapes::Sphere {
+            center: vec3::Pos(-1., 0., -1.),
+            radius: 0.4,
+            mat: &mat_bubble,
         });
 
         // right
