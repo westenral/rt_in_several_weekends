@@ -24,9 +24,6 @@ pub struct Camera {
     defocus_angle: f64,
     defocus_u: Vec3,
     defocus_v: Vec3,
-
-    u: Vec3,
-    v: Vec3,
 }
 
 impl Camera {
@@ -102,9 +99,6 @@ impl Camera {
             defocus_angle,
             defocus_u,
             defocus_v,
-
-            u,
-            v,
         }
     }
 

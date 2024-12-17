@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use super::Camera;
 use crate::vec3::*;
 
