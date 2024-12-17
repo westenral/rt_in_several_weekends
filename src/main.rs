@@ -11,18 +11,44 @@ fn main() {
     let material_ground = materials::Lambertian {
         albedo: color::Color(0.8, 0.8, 0.0),
     };
-    let material_center = materials::Lambertian {
-        albedo: color::Color(0.1, 0.2, 0.5),
+    let mat1 = materials::Dialectric {
+        refraction_index: 1.5,
     };
-    let material_left = materials::Dialectric {
-        refraction_index: 1.50,
+    let mat2 = materials::Lambertian {
+        albedo: color::Color(0.4, 0.2, 0.1),
     };
-    let material_bubble = materials::Dialectric {
-        refraction_index: 1.00 / 1.50,
+    let mat3 = materials::Metal {
+        albedo: color::Color(0.7, 0.6, 0.5),
+        fuzz: 0.0,
     };
-    let material_right = materials::Metal {
-        albedo: color::Color(0.8, 0.6, 0.2),
-        fuzz: 1.,
+
+    let material_list = {
+        let mut material_list: Vec<Box<dyn materials::Material>> = vec![];
+
+        for _ in -11..11 {
+            for _ in -11..11 {
+                let choose_mat = fastrand::f64();
+
+                match choose_mat {
+                    0.0..0.8 => {
+                        let albedo = color::Color::random() * color::Color::random();
+                        material_list.push(Box::new(materials::Lambertian { albedo }));
+                    }
+                    ..0.95 => {
+                        let albedo = color::Color::random_range(0.5, 1.);
+                        let fuzz = fastrand::f64() * 0.5;
+                        material_list.push(Box::new(materials::Metal { albedo, fuzz }));
+                    }
+                    _ => {
+                        material_list.push(Box::new(materials::Dialectric {
+                            refraction_index: 1.5,
+                        }));
+                    }
+                }
+            }
+        }
+
+        material_list
     };
 
     // world setup
@@ -30,45 +56,40 @@ fn main() {
         let mut world = hit::HitList::default();
 
         world.push(shapes::Sphere::new(
-            vec3::Pos(0., -100.5, -1.),
-            100.,
+            vec3::Pos(0., -1000., 0.),
+            1000.,
             &material_ground,
         ));
+        world.push(shapes::Sphere::new(vec3::Pos(0., 1., 0.), 1., &mat1));
+        world.push(shapes::Sphere::new(vec3::Pos(-4., 1., 0.), 1., &mat2));
+        world.push(shapes::Sphere::new(vec3::Pos(4., 1., 0.), 1., &mat3));
 
-        world.push(shapes::Sphere::new(
-            vec3::Pos(0., 0., -1.2),
-            0.5,
-            &material_center,
-        ));
+        let mut i: usize = 0;
+        for a in -11..11 {
+            for b in -11..11 {
+                let radius = 0.2;
+                let center = vec3::Pos(
+                    a as f64 + 0.9 * fastrand::f64(),
+                    radius,
+                    b as f64 + 0.9 * fastrand::f64(),
+                );
 
-        world.push(shapes::Sphere::new(
-            vec3::Pos(-1., 0., -1.),
-            0.5,
-            &material_left,
-        ));
+                world.push(shapes::Sphere::new(center, radius, &*material_list[i]));
 
-        world.push(shapes::Sphere::new(
-            vec3::Pos(-1., 0., -1.),
-            0.4,
-            &material_bubble,
-        ));
-
-        world.push(shapes::Sphere::new(
-            vec3::Pos(1., 0., -1.),
-            0.5,
-            &material_right,
-        ));
+                i += 1;
+            }
+        }
 
         world
     };
 
     let cam = camera::CameraBuilder::debug_render()
         .with_vfov_degrees(20.)
-        .with_lookfrom(vec3::Pos(-2., 2., 1.))
-        .with_lookat(vec3::Pos(0., 0., -1.))
+        .with_lookfrom(vec3::Pos(13., 2., 3.))
+        .with_lookat(vec3::Pos(0., 0., 0.))
         .with_vup(vec3::Vec3(0., 1., 0.))
-        .with_defocus_angle_degrees(10.)
-        .with_focus_dist(3.4)
+        .with_defocus_angle_degrees(0.6)
+        .with_focus_dist(10.0)
         .build();
 
     cam.render(&world);
