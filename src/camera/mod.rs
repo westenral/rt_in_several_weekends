@@ -20,15 +20,29 @@ pub struct Camera {
     samples_per_pixel: u64,
     pixel_sample_scale: f64,
     max_bounces: u64,
+
+    defocus_angle: f64,
+    defocus_u: Vec3,
+    defocus_v: Vec3,
+
+    u: Vec3,
+    v: Vec3,
 }
 
 impl Camera {
+    #[allow(clippy::too_many_arguments)]
+    /// Use CameraBuilder instead.
     pub fn new(
         aspect_ratio: f64,
         image_width: u64,
         samples_per_pixel: u64,
         max_bounces: u64,
         vfov: f64,
+        lookat: Pos,
+        lookfrom: Pos,
+        vup: Vec3,
+        defocus_angle: f64,
+        focus_dist: f64,
     ) -> Self {
         let pixel_sample_scale = 1.0 / samples_per_pixel as f64;
 
@@ -36,17 +50,23 @@ impl Camera {
         let image_height = ((image_width as f64 / aspect_ratio) as u64).max(1);
 
         // camera info
-        let camera_position = Pos(0., 0., 0.);
-        let focal_length = 1.0;
+        let camera_position = lookfrom;
+        // let focal_length = (lookfrom - lookat).length();
         let theta = vfov;
         let h = (theta / 2.).tan();
 
         // camera viewport info
-        let viewport_height = 2. * h * focal_length;
+        let viewport_height = 2. * h * focus_dist;
         let viewport_width = viewport_height * (image_width as f64 / image_height as f64);
+
+        // calculate orthonormal basis (u, v, w)
+        let w = (lookfrom - lookat).unit_vec();
+        let u = vup.cross(&w).unit_vec();
+        let v = w.cross(&u);
+
         // vectors along viewport top and left edges
-        let viewport_u = Vec3(viewport_width, 0., 0.);
-        let viewport_v = Vec3(0., -viewport_height, 0.);
+        let viewport_u = viewport_width * u;
+        let viewport_v = viewport_height * -v;
 
         // horizontal and vertical vec between in-world pixel centers
         let pixel_du = viewport_u / image_width as f64;
@@ -54,8 +74,12 @@ impl Camera {
 
         // position of upper left pixel
         let viewport_upper_left =
-            camera_position + Vec3(0., 0., -focal_length) - viewport_u / 2. - viewport_v / 2.;
+            camera_position - (focus_dist * w) - viewport_u / 2. - viewport_v / 2.;
         let pixel_00_pos = viewport_upper_left + pixel_du / 2. + pixel_dv / 2.;
+
+        let defocus_radius = focus_dist * (defocus_angle / 2.).tan();
+        let defocus_u = u * defocus_radius;
+        let defocus_v = v * defocus_radius;
 
         Self {
             // aspect_ratio,
@@ -74,6 +98,13 @@ impl Camera {
             samples_per_pixel,
             pixel_sample_scale,
             max_bounces,
+
+            defocus_angle,
+            defocus_u,
+            defocus_v,
+
+            u,
+            v,
         }
     }
 
@@ -138,14 +169,25 @@ impl Camera {
     }
 
     fn get_ray(&self, i: u64, j: u64) -> Ray {
+        let origin = if self.defocus_angle <= 0. {
+            self.center
+        } else {
+            self.defocus_disk_sample()
+        };
+
         let offset = sample_square();
-        Ray {
-            origin: self.center,
-            dir: self.pixel_00_pos
-                + self.pixel_du * (i as f64 + offset.0)
-                + self.pixel_dv * (j as f64 + offset.1)
-                - self.center,
-        }
+        // let offset = offset.0 * self.pixel_du + offset.1 * self.pixel_dv;
+        let viewport_target = self.pixel_00_pos
+            + self.pixel_du * (offset.0 + i as f64)
+            + self.pixel_dv * (offset.1 + j as f64);
+        let dir = viewport_target - origin;
+
+        Ray { origin, dir }
+    }
+
+    fn defocus_disk_sample(&self) -> Pos {
+        let p = Vec3::rand_in_unit_disk();
+        self.center + p.0 * self.defocus_u + p.1 * self.defocus_v
     }
 }
 

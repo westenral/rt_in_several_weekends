@@ -62,6 +62,15 @@ impl Vec3 {
         }
     }
 
+    pub fn rand_in_unit_disk() -> Vec3 {
+        loop {
+            let vec = Vec3(randf64(-1., 1.), randf64(-1., 1.), 0.);
+            if vec.length_squared() < 1. {
+                return vec;
+            }
+        }
+    }
+
     /// Checks whether the vector is near zero
     pub fn near_zero(&self) -> bool {
         let margin = 1e-8;

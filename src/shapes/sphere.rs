@@ -11,6 +11,16 @@ pub struct Sphere<'a> {
     pub mat: &'a dyn Material,
 }
 
+impl<'a> Sphere<'a> {
+    pub fn new(center: Pos, radius: f64, mat: &'a dyn Material) -> Self {
+        Self {
+            center,
+            radius,
+            mat,
+        }
+    }
+}
+
 impl Hit for Sphere<'_> {
     fn hit(&self, ray: &Ray, ray_t_interval: Range<f64>) -> Option<HitInfo> {
         // quadratic formula
