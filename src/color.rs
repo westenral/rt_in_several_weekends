@@ -17,6 +17,14 @@ impl Color {
         );
     }
 
+    pub fn random() -> Self {
+        Color(fastrand::f64(), fastrand::f64(), fastrand::f64())
+    }
+
+    pub fn random_range(min: f64, max: f64) -> Self {
+        Color(randf64(min, max), randf64(min, max), randf64(min, max))
+    }
+
     #[inline(always)]
     pub fn r(&self) -> f64 {
         self.0
@@ -31,4 +39,8 @@ impl Color {
     pub fn b(&self) -> f64 {
         self.2
     }
+}
+
+fn randf64(min: f64, max: f64) -> f64 {
+    fastrand::f64() * (max - min) + min
 }
