@@ -105,15 +105,19 @@ impl Camera {
     pub fn render_parallel(&self, world: &(impl Hit + Sync)) {
         use std::thread;
 
+        // for tracking
         let start_time = std::time::Instant::now();
 
+        // calculate how many lines each thread gets
         let cores = num_cpus::get();
         let leftover = self.image_height % cores as u64;
         let lines_per_core = (self.image_height - leftover) / cores as u64;
 
+        // buffer for pixels
         let mut pixels: Vec<Color> =
             Vec::with_capacity((self.image_width * self.image_height) as usize);
 
+        // for tracking
         let (tx, rx) = std::sync::mpsc::channel::<usize>();
 
         // progress watcher
@@ -136,6 +140,7 @@ impl Camera {
             for i in 0..cores {
                 let tx = tx.clone();
                 handles.push(s.spawn(move || {
+                    // determine start and end lines to render
                     let start: u64 = i as u64 * lines_per_core;
                     let lines = if i == (cores - 1) {
                         self.image_height - start
@@ -144,6 +149,7 @@ impl Camera {
                     };
                     let end: u64 = start + lines;
 
+                    // rendering
                     let mut pixels = Vec::with_capacity((lines * self.image_width) as usize);
                     for y in start..end {
                         tx.send(1).unwrap();
@@ -156,12 +162,14 @@ impl Camera {
                 }));
             }
 
+            // concat all the pixels
             for handle in handles {
                 pixels.append(&mut handle.join().unwrap());
             }
         });
 
         println!("P3\n{} {}\n255", self.image_width, self.image_height);
+        // write pixel colors to stdout
         for pixel in pixels {
             pixel.write_color();
         }
