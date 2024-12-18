@@ -102,6 +102,34 @@ impl Camera {
         }
     }
 
+    pub fn render_parallel(&self, world: &(impl Hit + Sync)) {
+        use rayon::iter::{IntoParallelIterator, ParallelIterator};
+        let start_time = std::time::Instant::now();
+
+        let colors = (0..(self.image_width * self.image_height))
+            .into_par_iter()
+            .map(|i| (i % self.image_width, i / self.image_width))
+            .map(|(x, y)| {
+                (0..self.samples_per_pixel)
+                    .map(|_| self.get_ray(x, y))
+                    .map(|ray| self.ray_color(&ray, world, 0))
+                    .sum::<Color>()
+                    * self.pixel_sample_scale
+            })
+            .collect::<Vec<Color>>();
+
+        eprintln!(
+            "\rFinished rendering in {:.4} seconds                           ",
+            start_time.elapsed().as_millis() as f64 / 1000.0
+        );
+
+        println!("P3\n{} {}\n255", self.image_width, self.image_height);
+
+        for color in colors {
+            color.write_color()
+        }
+    }
+
     // outputs to stdout rn...
     pub fn render(&self, world: &impl Hit) {
         let start_time = std::time::Instant::now();

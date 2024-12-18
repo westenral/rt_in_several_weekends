@@ -23,7 +23,7 @@ fn main() {
     };
 
     let material_list = {
-        let mut material_list: Vec<Box<dyn materials::Material>> = vec![];
+        let mut material_list: Vec<Box<dyn materials::Material + Sync>> = vec![];
 
         for _ in -11..11 {
             for _ in -11..11 {
@@ -83,7 +83,7 @@ fn main() {
         world
     };
 
-    let cam = camera::CameraBuilder::debug_render()
+    let cam = camera::CameraBuilder::final_render()
         .with_vfov_degrees(20.)
         .with_lookfrom(vec3::Pos(13., 2., 3.))
         .with_lookat(vec3::Pos(0., 0., 0.))
@@ -92,5 +92,6 @@ fn main() {
         .with_focus_dist(10.0)
         .build();
 
-    cam.render(&world);
+    // cam.render(&world);
+    cam.render_parallel(&world);
 }

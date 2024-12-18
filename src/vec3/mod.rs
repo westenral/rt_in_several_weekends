@@ -113,6 +113,12 @@ impl std::ops::Neg for &Vec3 {
     }
 }
 
+impl std::iter::Sum for Vec3 {
+    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+        iter.reduce(|acc, x| acc + x).unwrap_or(Self(0., 0., 0.))
+    }
+}
+
 impl_vec3_binop!(Add, add, Vec3);
 impl_vec3_binop!(Add, add, f64);
 impl_vec3_binop!(AddAssign, add_assign, Vec3, assign);

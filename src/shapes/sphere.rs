@@ -8,11 +8,11 @@ pub struct Sphere<'a> {
 
     // material
     // could be seperated - geometry and material seperate
-    pub mat: &'a dyn Material,
+    pub mat: &'a (dyn Material + Sync),
 }
 
 impl<'a> Sphere<'a> {
-    pub fn new(center: Pos, radius: f64, mat: &'a dyn Material) -> Self {
+    pub fn new(center: Pos, radius: f64, mat: &'a (dyn Material + Sync)) -> Self {
         Self {
             center,
             radius,

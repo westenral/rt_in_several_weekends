@@ -27,11 +27,11 @@ pub trait Hit {
 
 #[derive(Default)]
 pub struct HitList<'a> {
-    objects: Vec<Box<dyn Hit + 'a>>,
+    objects: Vec<Box<dyn Hit + Sync + 'a>>,
 }
 
 impl<'a> HitList<'a> {
-    pub fn push(&mut self, object: impl Hit + 'a) {
+    pub fn push(&mut self, object: impl Hit + Sync + 'a) {
         self.objects.push(Box::new(object))
     }
 }
