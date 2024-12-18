@@ -83,7 +83,7 @@ fn main() {
         world
     };
 
-    let cam = camera::CameraBuilder::final_render()
+    let cam = camera::CameraBuilder::debug_render()
         .with_vfov_degrees(20.)
         .with_lookfrom(vec3::Pos(13., 2., 3.))
         .with_lookat(vec3::Pos(0., 0., 0.))
