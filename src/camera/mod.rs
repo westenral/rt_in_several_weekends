@@ -103,31 +103,79 @@ impl Camera {
     }
 
     pub fn render_parallel(&self, world: &(impl Hit + Sync)) {
-        use rayon::iter::{IntoParallelIterator, ParallelIterator};
+        use std::thread;
+
         let start_time = std::time::Instant::now();
 
-        let colors = (0..(self.image_width * self.image_height))
-            .into_par_iter()
-            .map(|i| (i % self.image_width, i / self.image_width))
-            .map(|(x, y)| {
-                (0..self.samples_per_pixel)
-                    .map(|_| self.get_ray(x, y))
-                    .map(|ray| self.ray_color(&ray, world, 0))
-                    .sum::<Color>()
-                    * self.pixel_sample_scale
-            })
-            .collect::<Vec<Color>>();
+        let cores = num_cpus::get();
+        let leftover = self.image_height % cores as u64;
+        let lines_per_core = (self.image_height - leftover) / cores as u64;
 
+        let mut pixels: Vec<Color> =
+            Vec::with_capacity((self.image_width * self.image_height) as usize);
+
+        let (tx, rx) = std::sync::mpsc::channel::<usize>();
+
+        // progress watcher
+        let image_height = self.image_height;
+        thread::spawn(move || {
+            let mut lines = 0;
+
+            while let Ok(i) = rx.recv() {
+                lines += i;
+                eprint!(
+                    "\rRender Progress: {:>6.2} %\tTime: {:.1?}                 \r",
+                    lines as f64 / image_height as f64 * 100.,
+                    start_time.elapsed()
+                )
+            }
+        });
+
+        thread::scope(|s| {
+            let mut handles = vec![];
+            for i in 0..cores {
+                let tx = tx.clone();
+                handles.push(s.spawn(move || {
+                    let start: u64 = i as u64 * lines_per_core;
+                    let lines = if i == (cores - 1) {
+                        self.image_height - start
+                    } else {
+                        lines_per_core
+                    };
+                    let end: u64 = start + lines;
+
+                    let mut pixels = Vec::with_capacity((lines * self.image_width) as usize);
+                    for y in start..end {
+                        tx.send(1).unwrap();
+                        for x in 0..self.image_width {
+                            pixels.push(self.pixel_color(world, x, y));
+                        }
+                    }
+
+                    pixels
+                }));
+            }
+
+            for handle in handles {
+                pixels.append(&mut handle.join().unwrap());
+            }
+        });
+
+        println!("P3\n{} {}\n255", self.image_width, self.image_height);
+        for pixel in pixels {
+            pixel.write_color();
+        }
         eprintln!(
             "\rFinished rendering in {:.4} seconds                           ",
             start_time.elapsed().as_millis() as f64 / 1000.0
         );
+    }
 
-        println!("P3\n{} {}\n255", self.image_width, self.image_height);
-
-        for color in colors {
-            color.write_color()
-        }
+    fn pixel_color(&self, world: &impl Hit, x: u64, y: u64) -> Color {
+        (0..self.samples_per_pixel)
+            .map(|_| self.ray_color(&self.get_ray(x, y), world, 0))
+            .sum::<Color>()
+            * self.pixel_sample_scale
     }
 
     // outputs to stdout rn...
