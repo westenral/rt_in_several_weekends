@@ -1,4 +1,5 @@
 mod camera_builder;
+
 pub use camera_builder::*;
 
 use crate::{color::*, hit::*, ray::*, vec3::*};
@@ -103,6 +104,96 @@ impl Camera {
     }
 
     pub fn render_parallel(&self, world: &(impl Hit + Sync)) {
+        use std::{sync::mpsc, thread};
+
+        let start_time = std::time::Instant::now();
+        eprint!("Starting render\r");
+
+        // get number of threads available
+        let threads = num_cpus::get();
+
+        // channels for assigning work
+        // assigns which line needs to be rendered
+        let assign_rxs = {
+            let mut assign_txs = vec![];
+            let mut assign_rxs = vec![];
+
+            for _ in 0..threads {
+                let (tx, rx) = mpsc::channel::<u64>();
+                assign_txs.push(tx);
+                assign_rxs.push(rx);
+            }
+
+            // assign every line to be rendered
+            for i in 0..self.image_height {
+                assign_txs[i as usize % threads].send(i).unwrap();
+            }
+
+            assign_rxs
+        };
+
+        // channel for receiving work
+        let (report_tx, report_rx) = mpsc::channel::<(usize, Vec<Color>)>();
+
+        // create "accumulator" thread
+        // responsible for  receiving data from threads
+        let image_height = self.image_height;
+        let image_width = self.image_width;
+        let start_time_d = start_time;
+        let accumulator = thread::spawn(move || {
+            let mut lines_completed = 0;
+
+            let mut image = vec![Color(0., 0., 0.); (image_height * image_width) as usize];
+            while let Ok((line, pixels)) = report_rx.recv() {
+                // gross clone..............agggghghh
+                image[(line * image_width as usize)..((line + 1) * image_width as usize)]
+                    .clone_from_slice(&pixels);
+                lines_completed += 1;
+                eprint!(
+                    "\rRender Progress: {:>6.2} %\tTime: {:.1?}               \r",
+                    lines_completed as f64 / image_height as f64 * 100.,
+                    start_time_d.elapsed()
+                )
+            }
+
+            image
+        });
+
+        // create "worker" threads
+        // responsible for rendering the lines they are assigned
+        // closure is "move" because it needs to take ownership of report_tx
+        // so that the dispatcher can correctly finish when all worker
+        // threads finish
+        thread::scope(move |s| {
+            for assign_rx in assign_rxs {
+                let report_tx = report_tx.clone();
+                s.spawn(move || {
+                    while let Ok(line) = assign_rx.recv() {
+                        let pixels = (0..self.image_width)
+                            .map(|x| self.pixel_color(world, x, line))
+                            .collect();
+
+                        report_tx.send((line as usize, pixels)).unwrap();
+                    }
+                });
+            }
+        });
+
+        // output final image
+        let image = accumulator.join().unwrap();
+
+        println!("P3\n{} {}\n255", self.image_width, self.image_height);
+        // write pixel colors to stdout
+        for pixel in image {
+            pixel.write_color();
+        }
+        eprintln!(
+            "\rFinished rendering in {:.4} seconds                           ",
+            start_time.elapsed().as_millis() as f64 / 1000.0
+        );
+    }
+
+    pub fn _render_parallel(&self, world: &(impl Hit + Sync)) {
         use std::thread;
 
         // for tracking
@@ -187,7 +278,7 @@ impl Camera {
     }
 
     // outputs to stdout rn...
-    pub fn render(&self, world: &impl Hit) {
+    pub fn _render(&self, world: &impl Hit) {
         let start_time = std::time::Instant::now();
 
         println!("P3\n{} {}\n255", self.image_width, self.image_height);

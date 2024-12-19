@@ -50,6 +50,10 @@ impl CameraBuilder {
     }
 
     /// Preset resolution, aspect ratio, samples, and bounces for a final render.
+    /// Image width: 1920
+    /// Aspect ratio: 16/9
+    /// Samples per pixel: 1500
+    /// Max bounces: 200
     pub fn final_render() -> Self {
         Self::default()
             .with_image_width(1920)
@@ -59,6 +63,10 @@ impl CameraBuilder {
     }
 
     /// Preset resolution, aspect ratio, samples, and bounces for a debug render.
+    /// Image width: 1920 / 4
+    /// Aspect ratio: 16/9
+    /// Samples per pixel: 100
+    /// Max bounces: 50
     pub fn debug_render() -> Self {
         Self::default()
             .with_image_width(1920 / 4)
