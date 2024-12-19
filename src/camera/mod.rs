@@ -104,6 +104,7 @@ impl Camera {
     }
 
     pub fn render_parallel(&self, world: &(impl Hit + Sync)) {
+        use crossbeam;
         use std::{sync::mpsc, thread};
 
         let start_time = std::time::Instant::now();
@@ -112,24 +113,14 @@ impl Camera {
         // get number of threads available
         let threads = num_cpus::get();
 
-        // channels for assigning work
+        // channel for assigning work
         // assigns which line needs to be rendered
-        let assign_rxs = {
-            let mut assign_txs = vec![];
-            let mut assign_rxs = vec![];
-
-            for _ in 0..threads {
-                let (tx, rx) = mpsc::channel::<u64>();
-                assign_txs.push(tx);
-                assign_rxs.push(rx);
-            }
-
-            // assign every line to be rendered
+        let assign_rx = {
+            let (tx, rx) = crossbeam::channel::bounded(self.image_height as usize);
             for i in 0..self.image_height {
-                assign_txs[i as usize % threads].send(i).unwrap();
+                tx.send(i).unwrap();
             }
-
-            assign_rxs
+            rx
         };
 
         // channel for receiving work
@@ -149,11 +140,12 @@ impl Camera {
                 image[(line * image_width as usize)..((line + 1) * image_width as usize)]
                     .clone_from_slice(&pixels);
                 lines_completed += 1;
+
                 eprint!(
                     "\rRender Progress: {:>6.2} %\tTime: {:.1?}               \r",
                     lines_completed as f64 / image_height as f64 * 100.,
                     start_time_d.elapsed()
-                )
+                );
             }
 
             image
@@ -165,8 +157,9 @@ impl Camera {
         // so that the dispatcher can correctly finish when all worker
         // threads finish
         thread::scope(move |s| {
-            for assign_rx in assign_rxs {
+            for _ in 0..threads {
                 let report_tx = report_tx.clone();
+                let assign_rx = assign_rx.clone();
                 s.spawn(move || {
                     while let Ok(line) = assign_rx.recv() {
                         let pixels = (0..self.image_width)
