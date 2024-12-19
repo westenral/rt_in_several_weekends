@@ -9,7 +9,7 @@ mod vec3;
 fn main() {
     // materials
     let material_ground = materials::Lambertian {
-        albedo: color::Color(0.8, 0.8, 0.0),
+        albedo: color::Color(0.5, 0.5, 0.5),
     };
     let mat1 = materials::Dialectric {
         refraction_index: 1.5,
